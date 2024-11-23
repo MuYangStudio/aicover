@@ -77,7 +77,7 @@ export default function () {
       if (data) {
         console.log("new cover", data);
         // setCovers((covers: Cover[]) => [data, ...covers]);
-        router.push("/covers/mine");
+        router.push(`/covers/${data.uuid}`);
       }
     } catch (e) {
       console.log("gen cover failed", e);
@@ -87,7 +87,7 @@ export default function () {
   useEffect(() => {
     if (description) {
       if (!user) {
-        toast.error("请先登录");
+        // toast.error("请先登录");
         return;
       }
     }

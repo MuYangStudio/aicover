@@ -7,9 +7,9 @@ export async function insertCover(cover: Cover) {
   const db = getDb();
   const res = await db.query(
     `INSERT INTO covers 
-        (user_email, img_description, img_size, img_url, llm_name, llm_params, created_at, uuid, status, user_uuid) 
+        (user_email, img_description, img_size, img_url, llm_name, llm_params, created_at, uuid, status, user_uuid, app_tag) 
         VALUES 
-        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     `,
     [
       cover.user_email,
@@ -22,6 +22,7 @@ export async function insertCover(cover: Cover) {
       cover.uuid,
       cover.status,
       cover.user_uuid,
+      cover.app_tag,
     ]
   );
 
@@ -30,7 +31,9 @@ export async function insertCover(cover: Cover) {
 
 export async function getCoversCount(): Promise<number> {
   const db = getDb();
-  const res = await db.query(`SELECT count(1) as count FROM covers`);
+  const res = await db.query(
+    `SELECT count(1) as count FROM covers WHERE app_tag = 'cn'`
+  );
   if (res.rowCount === 0) {
     return 0;
   }
@@ -103,7 +106,7 @@ export async function getRandomCovers(
 
   const db = getDb();
   const res = await db.query(
-    `select w.*, u.uuid as user_uuid, u.email as user_email, u.nickname as user_name, u.avatar_url as user_avatar from covers as w left join users as u on w.user_email = u.email where w.status = 1 order by random() limit $1 offset $2`,
+    `select w.*, u.uuid as user_uuid, u.email as user_email, u.nickname as user_name, u.avatar_url as user_avatar from covers as w left join users as u on w.user_email = u.email where w.status = 1 and w.app_tag = 'cn' order by random() limit $1 offset $2`,
     [limit, offset]
   );
 
@@ -127,7 +130,7 @@ export async function getCovers(page: number, limit: number): Promise<Cover[]> {
 
   const db = getDb();
   const res = await db.query(
-    `select w.*, u.uuid as user_uuid, u.email as user_email, u.nickname as user_name, u.avatar_url as user_avatar from covers as w left join users as u on w.user_email = u.email where w.status = 1 order by w.created_at desc limit $1 offset $2`,
+    `select w.*, u.uuid as user_uuid, u.email as user_email, u.nickname as user_name, u.avatar_url as user_avatar from covers as w left join users as u on w.user_email = u.email where w.status = 1 and w.app_tag = 'cn' order by w.created_at desc limit $1 offset $2`,
     [limit, offset]
   );
   if (res.rowCount === 0) {
@@ -180,7 +183,7 @@ export async function getRecommendedCovers(
 
   const db = getDb();
   const res = await db.query(
-    `select w.*, u.uuid as user_uuid, u.email as user_email, u.nickname as user_name, u.avatar_url as user_avatar from covers as w left join users as u on w.user_email = u.email where w.is_recommended = true and w.status = 1 order by w.created_at desc limit $1 offset $2`,
+    `select w.*, u.uuid as user_uuid, u.email as user_email, u.nickname as user_name, u.avatar_url as user_avatar from covers as w left join users as u on w.user_email = u.email where w.is_recommended = true and w.status = 1 and w.app_tag = 'cn' order by w.created_at desc limit $1 offset $2`,
     [limit, offset]
   );
   if (res.rowCount === 0) {
@@ -225,6 +228,7 @@ export function formatCover(row: QueryResultRow): Cover | undefined {
     status: row.status,
     is_recommended: row.is_recommended,
     user_uuid: row.user_uuid,
+    app_tag: row.app_tag,
   };
 
   cover.created_user = {
