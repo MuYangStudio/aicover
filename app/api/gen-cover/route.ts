@@ -1,27 +1,32 @@
-import { respData, respErr } from "@/lib/resp";
+import { NextRequest, NextResponse } from "next/server";
+import { respData, respErr, respErrWithStatus } from "@/lib/resp";
 
 import { Cover } from "@/types/cover";
 import { ImageGenerateParams } from "openai/resources/images.mjs";
-import { currentUser } from "@clerk/nextjs";
 import { downloadAndUploadImage } from "@/lib/s3";
 import { genUuid } from "@/lib";
 import { getOpenAIClient } from "@/services/openai";
+import { getUser } from "@/services/auth";
 import { getUserCredits } from "@/services/order";
 import { insertCover } from "@/models/cover";
 
-export async function POST(req: Request) {
-  const user = await currentUser();
-  if (!user || !user.emailAddresses || user.emailAddresses.length === 0) {
-    return respErr("no auth");
+export async function POST(req: NextRequest) {
+  const userToken = req.cookies.get("user-token");
+  if (!userToken || !userToken.value) {
+    return respErrWithStatus("no auth", 401);
   }
+  const user = await getUser(userToken.value);
+  if (!user || !user.uuid) {
+    return respErrWithStatus("invalid user token", 401);
+  }
+  const user_email = user.email;
+  const user_uuid = user.uuid;
 
   try {
     const { description } = await req.json();
     if (!description) {
       return respErr("invalid params");
     }
-
-    const user_email = user.emailAddresses[0].emailAddress;
 
     const user_credits = await getUserCredits(user_email);
     if (!user_credits || user_credits.left_credits < 1) {
@@ -50,11 +55,12 @@ export async function POST(req: Request) {
       return respErr("generate cover failed");
     }
 
+    const img_uuid = genUuid();
     const img_name = encodeURIComponent(description);
     const s3_img = await downloadAndUploadImage(
       raw_img_url,
       process.env.AWS_BUCKET || "trysai",
-      `covers/${img_name}.png`
+      `covers/${img_uuid}.png`
     );
     const img_url = s3_img.Location;
 
@@ -66,8 +72,9 @@ export async function POST(req: Request) {
       llm_name: llm_name,
       llm_params: JSON.stringify(llm_params),
       created_at: created_at,
-      uuid: genUuid(),
+      uuid: img_uuid,
       status: 1,
+      user_uuid: user_uuid,
     };
     await insertCover(cover);
 

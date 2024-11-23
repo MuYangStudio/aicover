@@ -4,7 +4,9 @@ CREATE TABLE users (
     nickname VARCHAR(255),
     avatar_url VARCHAR(255),
     created_at timestamptz,
-    uuid UUID UNIQUE NOT NULL
+    uuid UUID UNIQUE NOT NULL,
+    openid VARCHAR(255),
+    platform VARCHAR(50)
 );
 
 CREATE TABLE covers (
@@ -17,7 +19,9 @@ CREATE TABLE covers (
     llm_params JSON,
     created_at timestamptz,
     uuid UUID UNIQUE NOT NULL,
-    status INT
+    status INT,
+    is_recommended BOOLEAN,
+    user_uuid UUID
 );
 
 CREATE TABLE orders (
@@ -32,5 +36,6 @@ CREATE TABLE orders (
     paied_at timestamptz,
     stripe_session_id VARCHAR(255),
     credits INT NOT NULL,
-    currency VARCHAR(50)
+    currency VARCHAR(50),
+    user_uuid UUID
 );

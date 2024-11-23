@@ -1,20 +1,25 @@
 import { insertOrder, updateOrderSession } from "@/models/order";
-import { respData, respErr } from "@/lib/resp";
+import { respData, respErr, respErrWithStatus } from "@/lib/resp";
 
+import { NextRequest } from "next/server";
 import { Order } from "@/types/order";
 import Stripe from "stripe";
-import { currentUser } from "@clerk/nextjs";
 import { genOrderNo } from "@/lib/order";
+import { getUser } from "@/services/auth";
 
 export const maxDuration = 120;
 
-export async function POST(req: Request) {
-  const user = await currentUser();
-  if (!user || !user.emailAddresses || user.emailAddresses.length === 0) {
-    return respErr("not login");
+export async function POST(req: NextRequest) {
+  const userToken = req.cookies.get("user-token");
+  if (!userToken || !userToken.value) {
+    return respErrWithStatus("no auth", 401);
   }
-  const user_email = user.emailAddresses[0].emailAddress;
-  console.log("user email: ", user_email);
+  const user = await getUser(userToken.value);
+  if (!user || !user.uuid) {
+    return respErrWithStatus("invalid user token", 401);
+  }
+  const user_email = user.email;
+  const user_uuid = user.uuid;
 
   try {
     const { credits, currency, amount, plan } = await req.json();
@@ -45,14 +50,15 @@ export async function POST(req: Request) {
       order_status: 1,
       credits: credits,
       currency: currency,
+      user_uuid: user_uuid,
     };
-    insertOrder(order);
+    await insertOrder(order);
     console.log("create new order: ", order);
 
     const stripe = new Stripe(process.env.STRIPE_PRIVATE_KEY || "");
 
     let options: Stripe.Checkout.SessionCreateParams = {
-      customer_email: user_email,
+      customer_email: user.platform ? undefined : user_email,
       payment_method_types: ["card"],
       line_items: [
         {

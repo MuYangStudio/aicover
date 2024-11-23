@@ -1,14 +1,24 @@
+import {
+  getCovers,
+  getRandomCovers,
+  getRecommendedCovers,
+} from "@/models/cover";
 import { respData, respErr } from "@/lib/resp";
 
 import { Cover } from "@/types/cover";
-import { getCovers } from "@/models/cover";
 
 export async function POST(req: Request) {
   try {
-    const { page } = await req.json();
-    const limit = 30;
+    const { cate, page, limit } = await req.json();
+    let covers: Cover[] = [];
 
-    const covers: Cover[] = await getCovers(page, limit);
+    if (cate === "featured") {
+      covers = await getRecommendedCovers(page, limit);
+    } else if (cate === "random") {
+      covers = await getRandomCovers(page, limit);
+    } else {
+      covers = await getCovers(page, limit);
+    }
 
     return respData(covers);
   } catch (e) {

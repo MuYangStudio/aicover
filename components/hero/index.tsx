@@ -1,12 +1,16 @@
-export default function () {
+import Producthunt from "@/components/producthunt";
+
+export default function ({ covers_count }: { covers_count: number }) {
   return (
     <section className="max-w-3xl mx-auto text-center">
-      <h1 className="text-6xl font-bold text-primary mt-8 md:mt-24">
-        AI 红包封面
+      <h1 className="text-3xl md:text-6xl font-bold text-primary mt-8 md:mt-24">
+        新年快乐，龙年大吉🐲
       </h1>
-      <h2 className="text-4xl my-8 text-secondary-foreground">
-        使用 AI 技术生成精美的微信红包封面
+      <h2 className="text-2xl md:text-4xl my-8 text-secondary-foreground">
+        <span className="text-primary">{covers_count}</span> 张使用 AI
+        生成的红包封面
       </h2>
+      <Producthunt />
     </section>
   );
 }

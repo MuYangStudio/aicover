@@ -1,6 +1,6 @@
 "use client";
 
-import { KeyboardEvent, useContext, useRef, useState } from "react";
+import { KeyboardEvent, useContext, useEffect, useRef, useState } from "react";
 
 import { AppContext } from "@/contexts/AppContext";
 import { Cover } from "@/types/cover";
@@ -33,7 +33,7 @@ export default function () {
 
     if (!user) {
       toast.error("请先登录");
-      router.push("/sign-in");
+      router.push("/login");
       return;
     }
 
@@ -61,7 +61,6 @@ export default function () {
 
       if (resp.status === 401) {
         toast.error("请先登录");
-        router.push("/sign-in");
         return;
       }
       console.log("gen wallpaper resp", resp);
@@ -77,12 +76,22 @@ export default function () {
       toast.success("生成成功");
       if (data) {
         console.log("new cover", data);
-        setCovers((covers: Cover[]) => [data, ...covers]);
+        // setCovers((covers: Cover[]) => [data, ...covers]);
+        router.push("/covers/mine");
       }
     } catch (e) {
       console.log("gen cover failed", e);
     }
   };
+
+  useEffect(() => {
+    if (description) {
+      if (!user) {
+        toast.error("请先登录");
+        return;
+      }
+    }
+  }, [description]);
 
   return (
     <div className="relative max-w-2xl mx-auto mt-4 md:mt-16">

@@ -12,8 +12,20 @@ export default function () {
     { name: "pricing", title: "价格", url: "/pricing", target: "_self" },
     {
       name: "doc",
-      title: "定制微信红包封面",
+      title: "定制封面",
       url: "https://cover.weixin.qq.com/cgi-bin/mmcover-bin/readtemplate?t=page/index#/doc?page=design&index=-1",
+      target: "_blank",
+    },
+    {
+      name: "about",
+      title: "复盘",
+      url: "https://mp.weixin.qq.com/s/4AIX8tGxRENukXf1srnRBA",
+      target: "_blank",
+    },
+    {
+      name: "bisai",
+      title: "比赛",
+      url: "https://mp.weixin.qq.com/s/rUp58SBIQJfyvaWBgrpwJw",
       target: "_blank",
     },
   ];
@@ -50,7 +62,9 @@ export default function () {
             <div className="flex-1"></div>
 
             <div className="flex flex-row items-center lg:flex lg:flex-row lg:space-x-3 lg:space-y-0">
-              <div className="hidden md:block mr-4">{/* <Social /> */}</div>
+              <div className="hidden md:block mr-4">
+                <Social />
+              </div>
 
               {user === undefined ? (
                 <>loading...</>
@@ -73,7 +87,7 @@ export default function () {
                       <User user={user} />
                     </>
                   ) : (
-                    <a className="cursor-pointer" href="/sign-in">
+                    <a className="cursor-pointer" href="/login">
                       <Button>登录</Button>
                     </a>
                   )}

@@ -12,4 +12,6 @@ export interface Cover {
   created_user?: User;
   uuid: string;
   status: number;
+  is_recommended?: boolean;
+  user_uuid?: string;
 }
